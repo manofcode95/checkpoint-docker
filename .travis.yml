@@ -1,0 +1,36 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t lordofcodezz/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run lordofcodezz/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t lordofcodezz/multi-client ./client
+  - docker build -t lordofcodezz/multi-nginx ./nginx
+  - docker build -t lordofcodezz/multi-server ./server
+  - docker build -t lordofcodezz/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push lordofcodezz/multi-client
+  - docker push lordofcodezz/multi-nginx
+  - docker push lordofcodezz/multi-server
+  - docker push lordofcodezz/multi-worker
+
+deploy:
+  provider: elasticbeanstalk
+  region: 'ap-southeast-1'
+  app: 'multi-docker'
+  env: 'MultiDocker-env'
+  bucket_name: 'elasticbeanstalk-ap-southeast-1-293576579830'
+  bucket_path: 'docker-multi'
+  on:
+    branch: master
+  access_key_id: $AWS_USER_ID
+  secret_access_key: $AWS_USER_PASSWORD
