@@ -10,7 +10,7 @@
     },
     {
       "name": "server",
-      "image": "lordofcodezz/multi-server",
+      "image": "lordofcodezz/multi-api",
       "hostname": "api",
       "essential": false,
       "memory": 128
